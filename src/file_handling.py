@@ -3,8 +3,8 @@
 import pathlib
 import typing as tp
 
-from image_utils import SUPPORTED_IMAGE_EXTENSIONS
-from str_utils import strip_double_quotes
+from open_mcr.image_utils import SUPPORTED_IMAGE_EXTENSIONS
+from open_mcr.str_utils import strip_double_quotes
 
 
 def list_file_paths(directory: pathlib.Path) -> tp.List[pathlib.Path]:

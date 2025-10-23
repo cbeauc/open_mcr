@@ -3,8 +3,8 @@ import pathlib
 from datetime import datetime
 import itertools
 
-from data_exporting import format_timestamp_for_file, save_csv, OutputSheet
-import list_utils
+from open_mcr.data_exporting import format_timestamp_for_file, save_csv, OutputSheet
+import open_mcr.list_utils
 
 """Support for additional outputs used by the Multiple Choice Test Analysis software."""
 
@@ -71,7 +71,7 @@ def build_key_csv(answers: tp.List[str]) -> tp.List[tp.List[str]]:
     Params:
         answers: All of the answers for this form code, in order.
     """
-    length = len(answers) - list_utils.count_trailing_empty_elements(answers)
+    length = len(answers) - open_mcr.list_utils.count_trailing_empty_elements(answers)
     header = ["", "Answer", "Title", "Concept"]
     data = [[f"Q{i}", x, f"Q{i}", "unknown"] for i, x in enumerate(answers[:length], 1)]
     return [header] + data

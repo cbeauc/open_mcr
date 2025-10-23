@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 from numpy import ma
 
-import geometry_utils
+import open_mcr.geometry_utils
 
 SUPPORTED_IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".tif"]
 
@@ -92,12 +92,12 @@ def save_image(path: pathlib.PurePath, image: np.ndarray):
 
 def find_polygons(image: np.ndarray,
                   save_path: tp.Optional[pathlib.PurePath] = None
-                  ) -> tp.List[geometry_utils.Polygon]:
+                  ) -> tp.List[open_mcr.geometry_utils.Polygon]:
     """Returns a list of polygons found in the image."""
     edges = detect_edges(image, save_path=save_path)
     all_contours = find_contours(edges)
     polygons = [
-        geometry_utils.approx_poly(contour) for contour in all_contours
+        open_mcr.geometry_utils.approx_poly(contour) for contour in all_contours
     ]
     return polygons
 
@@ -165,7 +165,7 @@ def bw_to_bgr(image: np.ndarray) -> np.ndarray:
 
 
 def draw_polygons(image: np.ndarray,
-                  polygons: tp.List[geometry_utils.Polygon],
+                  polygons: tp.List[open_mcr.geometry_utils.Polygon],
                   full_save_path: tp.Optional[pathlib.PurePath] = None,
                   thickness: int = 1) -> np.ndarray:
     """Draw all the polygons on the image (for debugging) and return or save the result."""

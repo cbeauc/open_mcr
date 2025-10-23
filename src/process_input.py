@@ -3,14 +3,14 @@ import typing as tp
 from pathlib import Path
 from datetime import datetime
 
-import data_exporting
-import image_utils
-import corner_finding
-import scoring
-import grid_info as grid_i
-import grid_reading as grid_r
-from user_interface import ProgressTrackerWidget
-from mcta_processing import transform_and_save_mcta_output
+import open_mcr.data_exporting
+import open_mcr.image_utils
+import open_mcr.corner_finding
+import open_mcr.scoring
+import open_mcr.grid_info as grid_i
+import open_mcr.grid_reading as grid_r
+from open_mcr.user_interface import ProgressTrackerWidget
+from open_mcr.mcta_processing import transform_and_save_mcta_output
 
 
 def process_input(
@@ -33,23 +33,23 @@ def process_input(
     If progress_tracker parameter is None, prints all progress statuses to stdout.
     """
 
-    answers_results = data_exporting.OutputSheet([x for x in grid_i.Field],
+    answers_results = open_mcr.data_exporting.OutputSheet([x for x in grid_i.Field],
                                                  form_variant.num_questions)
-    keys_results = data_exporting.OutputSheet([grid_i.Field.TEST_FORM_CODE, grid_i.Field.IMAGE_FILE],
+    keys_results = open_mcr.data_exporting.OutputSheet([grid_i.Field.TEST_FORM_CODE, grid_i.Field.IMAGE_FILE],
                                               form_variant.num_questions)
 
-    rejected_files = data_exporting.OutputSheet([grid_i.Field.IMAGE_FILE], 0)
+    rejected_files = open_mcr.data_exporting.OutputSheet([grid_i.Field.IMAGE_FILE], 0)
 
     debug_dir = output_folder / (
-            data_exporting.format_timestamp_for_file(files_timestamp) + "debug")
+            open_mcr.data_exporting.format_timestamp_for_file(files_timestamp) + "debug")
     if debug_mode_on:
-        data_exporting.make_dir_if_not_exists(debug_dir)
+        open_mcr.data_exporting.make_dir_if_not_exists(debug_dir)
 
     try:
         for image_path in image_paths:
             if debug_mode_on:
                 debug_path = debug_dir / image_path.stem
-                data_exporting.make_dir_if_not_exists(debug_path)
+                open_mcr.data_exporting.make_dir_if_not_exists(debug_path)
             else:
                 debug_path = None
 
@@ -58,21 +58,21 @@ def process_input(
             else:
                 print(f"Processing '{image_path.name}'.")
 
-            image = image_utils.get_image(image_path, save_path=debug_path)
-            prepared_image = image_utils.prepare_scan_for_processing(
+            image = open_mcr.image_utils.get_image(image_path, save_path=debug_path)
+            prepared_image = open_mcr.image_utils.prepare_scan_for_processing(
                 image, save_path=debug_path)
 
             try:
-                corners = corner_finding.find_corner_marks(prepared_image,
+                corners = open_mcr.corner_finding.find_corner_marks(prepared_image,
                                                        save_path=debug_path)
-            except corner_finding.CornerFindingError:
+            except open_mcr.corner_finding.CornerFindingError:
                 rejected_files.add({grid_i.Field.IMAGE_FILE: image_path.name}, [])
                 continue
 
             # Dilates the image - removes black pixels from edges, which preserves
             # solid shapes while destroying nonsolid ones. By doing this after noise
             # removal and thresholding, it eliminates irregular things like W and M
-            morphed_image = image_utils.dilate(prepared_image,
+            morphed_image = open_mcr.image_utils.dilate(prepared_image,
                                                save_path=debug_path)
 
             # Establish a grid
@@ -172,7 +172,7 @@ def process_input(
 
             success_string += "✔️ Key processed and saved.\n"
 
-            scores = scoring.score_results(answers_results, keys_results,
+            scores = open_mcr.scoring.score_results(answers_results, keys_results,
                                            form_variant.num_questions)
             scores.save(output_folder,
                         "rearranged_scores",
@@ -187,7 +187,7 @@ def process_input(
                               sort_results,
                               timestamp=files_timestamp)
             success_string += "✔️ All keys processed and saved.\n"
-            scores = scoring.score_results(answers_results, keys_results,
+            scores = open_mcr.scoring.score_results(answers_results, keys_results,
                                            form_variant.num_questions)
             scores.save(output_folder,
                         "scores",

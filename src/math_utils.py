@@ -3,7 +3,7 @@
 import enum
 import typing as tp
 
-import list_utils
+import open_mcr.list_utils
 
 
 class InequalityTypes(enum.Enum):
@@ -60,4 +60,4 @@ def mean(values: tp.Union[tp.List[int], tp.List[float], tp.List[bool]]
 def divide_some(values: tp.List[float], indexes: tp.List[int],
                 divisor: float) -> tp.List[float]:
     """Returns a copy of `values` where items at `indices` are divided by `divisor`."""
-    return list_utils.call_on_some(values, indexes, lambda x: x / divisor)
+    return open_mcr.list_utils.call_on_some(values, indexes, lambda x: x / divisor)

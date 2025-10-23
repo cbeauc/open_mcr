@@ -2,10 +2,10 @@ import argparse
 import sys
 from datetime import datetime
 
-import file_handling
-from file_handling import parse_path_arg
-import grid_info as grid_i
-from process_input import process_input
+import open_mcr.file_handling
+from open_mcr.file_handling import parse_path_arg
+import open_mcr.grid_info as grid_i
+from open_mcr.process_input import process_input
 
 
 if __name__ == '__main__':
@@ -15,16 +15,16 @@ if __name__ == '__main__':
     parser.add_argument('input_folder',
                         help='Path to a folder containing scanned input sheets.\n'
                              'Sheets with student ID of "9999999999" treated as keys. Ignores subfolders.',
-                        type=parse_path_arg)
+                        type=open_mcr.file_handling.parse_path_arg)
     parser.add_argument('output_folder',
                         help='Path to a folder to save result to.',
-                        type=parse_path_arg)
+                        type=open_mcr.file_handling.parse_path_arg)
     parser.add_argument('--anskeys',
                         help='Answer Keys CSV file path. If given, will be used over other keys.',
-                        type=parse_path_arg)
+                        type=open_mcr.file_handling.parse_path_arg)
     parser.add_argument('--formmap',
                         help='Form Arrangement Map CSV file path. If given, only one answer key may be provided.',
-                        type=parse_path_arg)
+                        type=open_mcr.file_handling.parse_path_arg)
     parser.add_argument('--variant',
                         default='75',
                         choices=['75', '150'],
@@ -55,7 +55,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    image_paths = file_handling.filter_images(file_handling.list_file_paths(args.input_folder))
+    image_paths = open_mcr.file_handling.filter_images(open_mcr.file_handling.list_file_paths(args.input_folder))
     output_folder = args.output_folder
     multi_answers_as_f = args.multiple
     empty_answers_as_g = args.empty

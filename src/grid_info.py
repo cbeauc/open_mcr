@@ -1,8 +1,8 @@
 import enum
 import typing as tp
 
-import alphabet
-from geometry_utils import Orientation
+import open_mcr.alphabet
+from open_mcr.geometry_utils import Orientation
 
 KEY_STUDENT_ID = "9999999999"
 GRID_HORIZONTAL_CELLS = 36
@@ -57,7 +57,7 @@ class GridGroupInfo():
         if field_length is not None:
             self.field_length = field_length
         elif fields_type is FieldType.LETTER:
-            self.field_length = alphabet.LENGTH
+            self.field_length = open_mcr.alphabet.LENGTH
         else:
             self.field_length = 10
         self.fields_type = fields_type

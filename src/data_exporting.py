@@ -6,8 +6,8 @@ import pathlib
 import typing as tp
 from datetime import datetime
 
-import list_utils
-from grid_info import Field, RealOrVirtualField, VirtualField
+import open_mcr.list_utils
+from open_mcr.grid_info import Field, RealOrVirtualField, VirtualField
 
 # If you change these, also update the manual!
 COLUMN_NAMES: tp.Dict[RealOrVirtualField, str] = {
@@ -78,7 +78,7 @@ class OutputSheet():
         output_path = path / f"{format_timestamp_for_file(timestamp)}{filebasename}.csv"
         data = self.data
         if(transpose):
-            data = list_utils.transpose(data)
+            data = open_mcr.list_utils.transpose(data)
         save_csv(data, output_path)
         return output_path
 
@@ -86,7 +86,7 @@ class OutputSheet():
         deleted_column_index = self.field_columns.index(column)
         self.field_columns.pop(deleted_column_index)
         self.data = [
-            list_utils.remove_index(row, deleted_column_index)
+            open_mcr.list_utils.remove_index(row, deleted_column_index)
             for row in self.data
         ]
 
@@ -94,15 +94,15 @@ class OutputSheet():
         data = self.data[1:]
         col_names = self.data[0]
         try:
-            primary_index = list_utils.find_index(
+            primary_index = open_mcr.list_utils.find_index(
                 col_names, COLUMN_NAMES[Field.LAST_NAME])
-            secondary_index = list_utils.find_index(
+            secondary_index = open_mcr.list_utils.find_index(
                 col_names, COLUMN_NAMES[Field.FIRST_NAME])
-            tertiary_index = list_utils.find_index(
+            tertiary_index = open_mcr.list_utils.find_index(
                 col_names, COLUMN_NAMES[Field.MIDDLE_NAME])
         except StopIteration:
             try:
-                primary_index = list_utils.find_index(
+                primary_index = open_mcr.list_utils.find_index(
                     col_names, COLUMN_NAMES[Field.TEST_FORM_CODE])
                 secondary_index = None
                 tertiary_index = None
@@ -123,7 +123,7 @@ class OutputSheet():
                 row.append(fields[column].strip())
             except KeyError:
                 row.append('')
-        self.data.append(row + list_utils.strip_all(answers))
+        self.data.append(row + open_mcr.list_utils.strip_all(answers))
         self.row_count = len(self.data) - 1
 
     def add_file(self, csvfile: pathlib.Path):
@@ -154,7 +154,7 @@ class OutputSheet():
         make all rows the same length. """
         # Finds the length of the longest row by subtracting the minimum number of trailing empty elements
         longest_length = len(self.data[0]) - min([
-            list_utils.count_trailing_empty_elements(row)
+            open_mcr.list_utils.count_trailing_empty_elements(row)
             for row in self.data[1:]
         ])
         self.data[0] = self.data[0][:longest_length]
@@ -184,21 +184,21 @@ class OutputSheet():
 
         with open(str(arrangement_file), 'r', newline='') as file:
             reader = csv.reader(file)
-            names = list_utils.strip_all(next(reader))
-            form_code_index = list_utils.find_index(
+            names = open_mcr.list_utils.strip_all(next(reader))
+            form_code_index = open_mcr.list_utils.find_index(
                 names, COLUMN_NAMES[Field.TEST_FORM_CODE])
-            first_answer_index = list_utils.find_index(names, "Q1")
+            first_answer_index = open_mcr.list_utils.find_index(names, "Q1")
             for form in reader:
-                stripped_form = list_utils.strip_all(form)
+                stripped_form = open_mcr.list_utils.strip_all(form)
                 form_code = stripped_form[form_code_index]
                 to_order_zero_ind = [
                     int(n) - 1 for n in stripped_form[first_answer_index:]
                 ]
                 order_map[form_code] = to_order_zero_ind
 
-        sheet_form_code_index = list_utils.find_index(
+        sheet_form_code_index = open_mcr.list_utils.find_index(
             self.data[0], COLUMN_NAMES[Field.TEST_FORM_CODE])
-        sheet_first_answer_index = list_utils.find_index(self.data[0], "Q1")
+        sheet_first_answer_index = open_mcr.list_utils.find_index(self.data[0], "Q1")
         rearranged = [self.data[0]]
 
         for row in self.data[1:]:

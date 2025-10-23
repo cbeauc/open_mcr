@@ -8,9 +8,9 @@ from tkinter import filedialog, ttk
 import typing as tp
 import platform
 
-import file_handling
-import scoring
-import str_utils
+import open_mcr.file_handling
+import open_mcr.scoring
+import open_mcr.str_utils
 
 YPADDING = 4
 XPADDING = 7
@@ -111,7 +111,7 @@ class PickerWidget(abc.ABC):
     def _on_select(self, selection: Path):
         self.value = selection if str(selection).strip() != "." else None
 
-        display_text = str_utils.trim_middle_to_len(
+        display_text = open_mcr.str_utils.trim_middle_to_len(
             str(selection), 45,
             3) if self.value is not None else self.__placeholder
         self.__display_text.set(display_text)
@@ -522,8 +522,8 @@ class MainWindow:
             ok_to_submit = False
         else:
             self.input_folder = input_folder
-            images = file_handling.filter_images(
-                file_handling.list_file_paths(input_folder))
+            images = open_mcr.file_handling.filter_images(
+                open_mcr.file_handling.list_file_paths(input_folder))
             if len(images) == 0:
                 new_status += "❌ No image files found in selected input folder.\n"
                 ok_to_submit = False
@@ -547,7 +547,7 @@ class MainWindow:
         keys_file = self.__answer_key_picker.file
         self.keys_file = None
         if keys_file:
-            if scoring.verify_answer_key_sheet(keys_file):
+            if open_mcr.scoring.verify_answer_key_sheet(keys_file):
                 self.keys_file = keys_file
                 new_status += f"✔ Selected answer keys file appears to be valid.\n"
             else:
@@ -557,7 +557,7 @@ class MainWindow:
         arrangement_map = self.__arrangement_map_picker.file
         self.arrangement_map = None
         if arrangement_map:
-            if scoring.verify_answer_key_sheet(arrangement_map):
+            if open_mcr.scoring.verify_answer_key_sheet(arrangement_map):
                 self.arrangement_map = arrangement_map
                 new_status += f"✔ Selected key arrangement file appears to be valid.\n"
             else:

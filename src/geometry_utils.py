@@ -7,8 +7,8 @@ import typing as tp
 import cv2
 import numpy as np
 
-import list_utils
-import math_utils
+import open_mcr.list_utils
+import open_mcr.math_utils
 
 
 class Point:
@@ -88,8 +88,8 @@ def calc_corner_angles(contour: Polygon) -> tp.List[float]:
     index `i` is the angle between points `i-1`, `i`, and `i+1`."""
     result = []
     for i, point in enumerate(contour):
-        previous_point = contour[list_utils.prev_index(contour, i)]
-        next_point = contour[list_utils.next_index(contour, i)]
+        previous_point = contour[open_mcr.list_utils.prev_index(contour, i)]
+        next_point = contour[open_mcr.list_utils.next_index(contour, i)]
         result.append(calc_angle(previous_point, point, next_point))
     return result
 
@@ -99,7 +99,7 @@ def calc_side_lengths(contour: Polygon) -> tp.List[float]:
     index `i` is the distance from point `i` to point `i+1`."""
     result = []
     for i, point in enumerate(contour):
-        next_point = contour[list_utils.next_index(contour, i)]
+        next_point = contour[open_mcr.list_utils.next_index(contour, i)]
         result.append(calc_2d_dist(point, next_point))
     return result
 
@@ -108,7 +108,7 @@ def all_approx_square(contour: Polygon) -> bool:
     """Returns true if every angle in `contour` is approximately right
     (90deg)."""
     angles = calc_corner_angles(contour)
-    return math_utils.all_approx_equal(angles, math.pi / 2)
+    return open_mcr.math_utils.all_approx_equal(angles, math.pi / 2)
 
 
 def line_from_points(point_a: Point, point_b: Point) -> Line:
@@ -148,7 +148,7 @@ def calc_angle_between(line_a: Line, line_b: Line) -> float:
     return abs(angle_a - angle_b)
 
 
-InequalityLine = tp.Tuple[Line, math_utils.InequalityTypes]
+InequalityLine = tp.Tuple[Line, open_mcr.math_utils.InequalityTypes]
 
 
 def is_in_inequalities(point: Point,
@@ -158,15 +158,15 @@ def is_in_inequalities(point: Point,
     for inequality in inequalities:
         compare_value = inequality[0](point.x)
 
-        if ((inequality[1] is math_utils.InequalityTypes.GT
+        if ((inequality[1] is open_mcr.math_utils.InequalityTypes.GT
              and point.y <= compare_value)
-                or (inequality[1] is math_utils.InequalityTypes.GTE
+                or (inequality[1] is open_mcr.math_utils.InequalityTypes.GTE
                     and point.y < compare_value)
-                or (inequality[1] is math_utils.InequalityTypes.LT
+                or (inequality[1] is open_mcr.math_utils.InequalityTypes.LT
                     and point.y >= compare_value)
-                or (inequality[1] is math_utils.InequalityTypes.LTE
+                or (inequality[1] is open_mcr.math_utils.InequalityTypes.LTE
                     and point.y > compare_value)
-                or (inequality[1] is math_utils.InequalityTypes.NE
+                or (inequality[1] is open_mcr.math_utils.InequalityTypes.NE
                     and point.y == compare_value)):
             return False
     return True
@@ -241,8 +241,8 @@ def guess_centroid(quadrilateral: Polygon) -> Point:
     """Guesses an approximate centroid. Works well for squares."""
     xs = [p.x for p in quadrilateral]
     ys = [p.y for p in quadrilateral]
-    return Point(math_utils.mean([max(xs), min(xs)]),
-                 math_utils.mean([max(ys), min(ys)]))
+    return Point(open_mcr.math_utils.mean([max(xs), min(xs)]),
+                 open_mcr.math_utils.mean([max(ys), min(ys)]))
 
 
 class Corner(enum.Enum):
@@ -261,16 +261,16 @@ def get_corner(square: Polygon, corner: Corner) -> Point:
     """Gets the point representing the given corner of the square. Square should
     be pretty close to vertical - horizontal. """
     xs = [p.x for p in square]
-    highest_xs = sorted(list_utils.find_greatest_value_indexes(xs, 2))
+    highest_xs = sorted(open_mcr.list_utils.find_greatest_value_indexes(xs, 2))
     side_points = [
         p for i, p in enumerate(square)
         if (corner.value[1] == 1 and i in highest_xs) or (
             corner.value[1] == 0 and i not in highest_xs)
     ]
     side_ys = [p.y for p in side_points]
-    [highest_y] = list_utils.find_greatest_value_indexes(side_ys, 1)
+    [highest_y] = open_mcr.list_utils.find_greatest_value_indexes(side_ys, 1)
     corner_point = side_points[highest_y] if (
-        corner.value[0] == 0) else side_points[list_utils.next_index(
+        corner.value[0] == 0) else side_points[open_mcr.list_utils.next_index(
             side_points, highest_y)]
     return corner_point
 

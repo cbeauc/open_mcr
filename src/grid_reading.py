@@ -10,11 +10,11 @@ import cv2
 import numpy as np
 from numpy import ma
 
-import alphabet
-import geometry_utils
-import grid_info
-import image_utils
-import list_utils
+import open_mcr.alphabet
+import open_mcr.geometry_utils
+import open_mcr.grid_info
+import open_mcr.image_utils
+import open_mcr.list_utils
 
 """ This is what determines the circle size of the grid cell mask. If it is 0,
 the circle touches all edges of the grid cell. If it is 0.5, the circle is 50%
@@ -31,8 +31,8 @@ Notes:
 """
 GRID_CELL_CROP_FRACTION = 0.25
 
-# TODO: Import from geometry_utils when pyright#284 is fixed.
-Polygon = tp.List[geometry_utils.Point]
+# TODO: Import from open_mcr.geometry_utils when pyright#284 is fixed.
+Polygon = tp.List[open_mcr.geometry_utils.Point]
 
 
 class Grid:
@@ -40,10 +40,10 @@ class Grid:
     horizontal_cells: int
     vertical_cells: int
     image: np.ndarray
-    basis_transformer: geometry_utils.ChangeOfBasisTransformer
+    basis_transformer: open_mcr.geometry_utils.ChangeOfBasisTransformer
 
     def __init__(self,
-                 corners: geometry_utils.Polygon,
+                 corners: open_mcr.geometry_utils.Polygon,
                  horizontal_cells: int,
                  vertical_cells: int,
                  image: np.ndarray,
@@ -56,7 +56,7 @@ class Grid:
         self.corners = corners
         self.horizontal_cells = horizontal_cells
         self.vertical_cells = vertical_cells
-        self.basis_transformer = geometry_utils.ChangeOfBasisTransformer(
+        self.basis_transformer = open_mcr.geometry_utils.ChangeOfBasisTransformer(
             corners[0], corners[3], corners[2])
 
         self.horizontal_cell_size = 1 / self.horizontal_cells
@@ -65,18 +65,18 @@ class Grid:
         self.image = image
 
         if save_path:
-            image_utils.save_image(save_path / "grid.jpg", self.draw_grid())
+            open_mcr.image_utils.save_image(save_path / "grid.jpg", self.draw_grid())
 
     def _get_cell_shape_in_basis(self, across: int,
-                                 down: int) -> geometry_utils.Polygon:
+                                 down: int) -> open_mcr.geometry_utils.Polygon:
         return [
-            geometry_utils.Point(across * self.horizontal_cell_size,
+            open_mcr.geometry_utils.Point(across * self.horizontal_cell_size,
                                  down * self.vertical_cell_size),
-            geometry_utils.Point((across + 1) * self.horizontal_cell_size,
+            open_mcr.geometry_utils.Point((across + 1) * self.horizontal_cell_size,
                                  down * self.vertical_cell_size),
-            geometry_utils.Point((across + 1) * self.horizontal_cell_size,
+            open_mcr.geometry_utils.Point((across + 1) * self.horizontal_cell_size,
                                  (down + 1) * self.vertical_cell_size),
-            geometry_utils.Point(across * self.horizontal_cell_size,
+            open_mcr.geometry_utils.Point(across * self.horizontal_cell_size,
                                  (down + 1) * self.vertical_cell_size),
         ]
 
@@ -93,7 +93,7 @@ class Grid:
         y_coords = [point.y for point in cell]
         return (min(x_coords), max(x_coords)), (min(y_coords), max(y_coords))
 
-    def get_cell_shape(self, across: int, down: int) -> geometry_utils.Polygon:
+    def get_cell_shape(self, across: int, down: int) -> open_mcr.geometry_utils.Polygon:
         """Get the shape of a cell using it's 0-based index. Returns the contour
         in CW direction starting with the top left cell."""
         return self.basis_transformer.poly_from_basis(self._get_cell_shape_in_basis(across, down))
@@ -109,14 +109,14 @@ class Grid:
             int(round(min_x)):int(round(max_x + 1))
 ]
 
-    def get_cell_center(self, across: int, down: int) -> geometry_utils.Point:
+    def get_cell_center(self, across: int, down: int) -> open_mcr.geometry_utils.Point:
         """Get the center point of the cell."""
         ((min_x, max_x), (min_y, max_y)) = self.get_cell_range(across, down)
-        return geometry_utils.Point(min_x + ((max_x - min_x) / 2),
+        return open_mcr.geometry_utils.Point(min_x + ((max_x - min_x) / 2),
                                     min_y + ((max_y - min_y) / 2))
 
     def get_cell_circle(self, across: int,
-                        down: int) -> tp.Tuple[geometry_utils.Point, float]:
+                        down: int) -> tp.Tuple[open_mcr.geometry_utils.Point, float]:
         ((min_x, max_x), (min_y, max_y)) = self.get_cell_range(across, down)
         # If the cell is not perfectly square, base the circle size on the average dimension
         average_dimension = ((max_x - min_x) + (max_y - min_y)) / 2
@@ -139,7 +139,7 @@ class Grid:
     def draw_grid(self):
         """Draws the grid on the image, returning a copy with red dots at grid
         points."""
-        image = image_utils.bw_to_bgr(self.image)
+        image = open_mcr.image_utils.bw_to_bgr(self.image)
         for x in range(self.horizontal_cells):
             for y in range(self.vertical_cells):
                 points = self.get_cell_shape(x, y)
@@ -159,12 +159,12 @@ class _GridField(abc.ABC):
 
     horizontal_start_index: float
     vertical_start_index: float
-    orientation: geometry_utils.Orientation
+    orientation: open_mcr.geometry_utils.Orientation
     num_cells: int
     grid: Grid
 
     def __init__(self, grid: Grid, horizontal_start: int, vertical_start: int,
-                 orientation: geometry_utils.Orientation, num_cells: int):
+                 orientation: open_mcr.geometry_utils.Orientation, num_cells: int):
         self.vertical_start = vertical_start
         self.horizontal_start = horizontal_start
         self.orientation = orientation
@@ -185,7 +185,7 @@ class _GridField(abc.ABC):
 
     def get_cell_matrixes(self) -> tp.List[ma.MaskedArray]:
         results: tp.List[ma.MaskedArray] = []
-        is_vertical = self.orientation is geometry_utils.Orientation.VERTICAL
+        is_vertical = self.orientation is open_mcr.geometry_utils.Orientation.VERTICAL
         for i in range(self.num_cells):
             x = self.horizontal_start if is_vertical else self.horizontal_start + i
             y = self.vertical_start if not is_vertical else self.vertical_start + i
@@ -199,7 +199,7 @@ class _GridField(abc.ABC):
 
     def get_all_fill_percents(self) -> tp.List[float]:
         results = [
-            image_utils.get_fill_percent(square)
+            open_mcr.image_utils.get_fill_percent(square)
             for square in self.get_cell_matrixes()
         ]
         return results
@@ -217,7 +217,7 @@ class LetterGridField(_GridField):
     def read_value(self, threshold: float,
                    fill_percents: tp.List[float]) -> tp.List[str]:
         return [
-            alphabet.letters[i]
+            open_mcr.alphabet.letters[i]
             for i in super()._read_value_indexes(threshold, fill_percents)
         ]
 
@@ -231,7 +231,7 @@ class _GridFieldGroup(abc.ABC):
     @abc.abstractclassmethod
     def __init__(self, grid: Grid, horizontal_start: int, vertical_start: int,
                  num_fields: int, field_length: int,
-                 field_orientation: geometry_utils.Orientation):
+                 field_orientation: open_mcr.geometry_utils.Orientation):
         ...
 
     def read_value(self, threshold: float,
@@ -252,8 +252,8 @@ class NumberGridFieldGroup(_GridFieldGroup):
     entire number."""
     def __init__(self, grid: Grid, horizontal_start: int, vertical_start: int,
                  num_fields: int, field_length: int,
-                 field_orientation: geometry_utils.Orientation):
-        fields_vertical = field_orientation is geometry_utils.Orientation.VERTICAL
+                 field_orientation: open_mcr.geometry_utils.Orientation):
+        fields_vertical = field_orientation is open_mcr.geometry_utils.Orientation.VERTICAL
         self.fields = [
             NumberGridField(
                 grid,
@@ -274,8 +274,8 @@ class LetterGridFieldGroup(_GridFieldGroup):
     entire string."""
     def __init__(self, grid: Grid, horizontal_start: int, vertical_start: int,
                  num_fields: int, field_length: int,
-                 field_orientation: geometry_utils.Orientation):
-        fields_vertical = field_orientation is geometry_utils.Orientation.VERTICAL
+                 field_orientation: open_mcr.geometry_utils.Orientation):
+        fields_vertical = field_orientation is open_mcr.geometry_utils.Orientation.VERTICAL
         self.fields = [
             LetterGridField(
                 grid,
@@ -291,9 +291,9 @@ class LetterGridFieldGroup(_GridFieldGroup):
                        super().read_value(threshold, fill_percents))
 
 
-def get_group_from_info(info: grid_info.GridGroupInfo,
+def get_group_from_info(info: open_mcr.grid_info.GridGroupInfo,
                         grid: Grid) -> _GridFieldGroup:
-    if info.fields_type is grid_info.FieldType.LETTER:
+    if info.fields_type is open_mcr.grid_info.FieldType.LETTER:
         return LetterGridFieldGroup(grid, info.horizontal_start,
                                     info.vertical_start, info.num_fields,
                                     info.field_length, info.field_orientation)
@@ -303,8 +303,8 @@ def get_group_from_info(info: grid_info.GridGroupInfo,
                                     info.field_length, info.field_orientation)
 
 
-def read_field(field: grid_info.Field, grid: Grid, threshold: float,
-               form_variant: grid_info.FormVariant,
+def read_field(field: open_mcr.grid_info.Field, grid: Grid, threshold: float,
+               form_variant: open_mcr.grid_info.FormVariant,
                fill_percents: tp.List[tp.List[float]]
                ) -> tp.Optional[tp.List[tp.Union[tp.List[str], tp.List[int]]]]:
     """Shortcut to read a field given just the key for it and the grid object."""
@@ -317,7 +317,7 @@ def read_field(field: grid_info.Field, grid: Grid, threshold: float,
 
 
 def read_answer(question: int, grid: Grid, threshold: float,
-                form_variant: grid_info.FormVariant,
+                form_variant: open_mcr.grid_info.FormVariant,
                 fill_percents: tp.List[tp.List[float]]
                 ) -> tp.List[tp.Union[tp.List[str], tp.List[int]]]:
     """Shortcut to read a field given just the key for it and the grid object."""
@@ -339,8 +339,8 @@ def field_group_to_string(
     return "".join(result_strings).strip()
 
 
-def read_field_as_string(field: grid_info.Field, grid: Grid, threshold: float,
-                         form_variant: grid_info.FormVariant,
+def read_field_as_string(field: open_mcr.grid_info.Field, grid: Grid, threshold: float,
+                         form_variant: open_mcr.grid_info.FormVariant,
                          fill_percents: tp.List[tp.List[float]]
                          ) -> tp.Optional[str]:
     """Shortcut to read a field and format it as a string, given just the key and
@@ -355,7 +355,7 @@ def read_field_as_string(field: grid_info.Field, grid: Grid, threshold: float,
 
 def read_answer_as_string(question: int, grid: Grid, multi_answers_as_f: bool,
                           threshold: float,
-                          form_variant: grid_info.FormVariant,
+                          form_variant: open_mcr.grid_info.FormVariant,
                           fill_percents: tp.List[tp.List[float]]) -> str:
     """Shortcut to read a question's answer and format it as a string, given
     just the question number and the grid object. """
@@ -368,9 +368,9 @@ def read_answer_as_string(question: int, grid: Grid, multi_answers_as_f: bool,
 
 
 def calculate_bubble_fill_threshold(
-        field_fill_percents: tp.Dict[grid_info.Field, tp.List[tp.List[float]]],
+        field_fill_percents: tp.Dict[open_mcr.grid_info.Field, tp.List[tp.List[float]]],
         answer_fill_percents: tp.List[tp.List[tp.List[float]]],
-        form_variant: grid_info.FormVariant,
+        form_variant: open_mcr.grid_info.FormVariant,
         save_path: tp.Optional[pathlib.PurePath] = None) -> float:
     """Dynamically calculate the threshold to use for determining if a bubble is
     filled or unfilled.
@@ -393,7 +393,7 @@ def calculate_bubble_fill_threshold(
     differences = [
         last_chunk[i + 1] - last_chunk[i] for i in range(last_chunk.size - 1)
     ]
-    biggest_diff_index = list_utils.find_greatest_value_indexes(
+    biggest_diff_index = open_mcr.list_utils.find_greatest_value_indexes(
         differences, 1)[0]
     result = (last_chunk[biggest_diff_index] +
               last_chunk[biggest_diff_index + 1]) / 2
