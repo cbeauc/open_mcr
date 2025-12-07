@@ -1,0 +1,77 @@
+#!/usr/bin/env python
+# Copyright (C) 2025 Catherine Beauchemin <cbeau@users.sourceforge.net>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# ============================================================================
+import argparse
+import open_mcr
+
+
+def parse_args():
+	parser = argparse.ArgumentParser(
+		prog = 'process_mcr',
+		description = "reads open_mcr bubble sheet pdf scans and spitouts read results."
+	)
+
+	# Required arguments
+	parser.add_argument('files',
+		nargs='+',
+		help='List of files to process, e.g. dir/pg_00*pdf')
+
+	# Optional
+	parser.add_argument('-v','--version',
+		type=str,
+		default='exam',
+		help='Optional version number e.g. 275 (default: "exam")')
+
+	# Optional
+	parser.add_argument('-d','--debug_dir',
+		type=str,
+		default=None,
+		help='Optional debug directory to store debug image files.')
+
+	parser.add_argument('-n','--nquestions',
+		type=int,
+		default=30,
+		help='Number of MC questions (default: 30)')
+
+	args = parser.parse_args()
+
+	return args
+
+
+# =========================== MAIN ==================================
+
+args = parse_args()
+
+form_variant = open_mcr.get_form_variant(args.nquestions)
+
+# Store debug files
+if args.debug_dir is not None:
+	debug_dir = open_mcr.file_handling.parse_path_arg('debug')
+	open_mcr.data_exporting.make_dir_if_not_exists(debug_dir)
+else:
+	debug_dir = None
+
+# Print header
+for img_filename in args.files:
+	try:
+		stuID,answer = open_mcr.resolve_student_answer(img_filename, form_variant, debug_dir, threshold=None)
+		row = ','.join([img_filename, stuID, args.version, answer])
+	except:
+		field_data = [img_filename, 'X'*args.nquestions, img_filename]
+		row = ','.join([img_filename, None, args.version, None])
+	# Print to stdout as you go
+	print(row)
